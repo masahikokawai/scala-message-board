@@ -18,7 +18,6 @@ class CreateMessageController @Inject()(val messagesApi: MessagesApi)
     Ok(views.html.create(form))
   }
 
-  // 追加
   def create: Action[AnyContent] = Action { implicit request =>
     form
       .bindFromRequest()
@@ -26,7 +25,7 @@ class CreateMessageController @Inject()(val messagesApi: MessagesApi)
         formWithErrors => BadRequest(views.html.create(formWithErrors)), { model =>
           implicit val session = AutoSession
           val now              = ZonedDateTime.now()
-          val message          = Message(None, model.body, now, now)
+          val message          = Message(None, Some(model.title), model.body, now, now) // titleを追加
           val result           = Message.create(message)
           if (result > 0) {
             Redirect(routes.GetMessagesController.index())

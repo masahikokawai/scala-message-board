@@ -7,7 +7,7 @@ import forms.MessageForm
 import models.Message
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ Action, AnyContent, Controller }
-import scalikejdbc._, jsr310._ // 手動でインポートしてください。
+import scalikejdbc._, jsr310._
 
 @Singleton
 class UpdateMessageController @Inject()(val messagesApi: MessagesApi)
@@ -17,11 +17,9 @@ class UpdateMessageController @Inject()(val messagesApi: MessagesApi)
 
   def index(messageId: Long): Action[AnyContent] = Action { implicit request =>
     val result     = Message.findById(messageId).get
-    val filledForm = form.fill(MessageForm(result.id, result.body))
+    val filledForm = form.fill(MessageForm(result.id, result.title.getOrElse(""), result.body)) // titleが空な場合は""とする
     Ok(views.html.edit(filledForm))
   }
-
-  // 追加
   def update: Action[AnyContent] = Action { implicit request =>
     form
       .bindFromRequest()
@@ -31,6 +29,7 @@ class UpdateMessageController @Inject()(val messagesApi: MessagesApi)
           val result = Message
             .updateById(model.id.get)
             .withAttributes(
+              'title    -> model.title, // titleを追加
               'body     -> model.body,
               'updateAt -> ZonedDateTime.now()
             )
