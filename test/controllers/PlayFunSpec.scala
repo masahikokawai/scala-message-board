@@ -16,8 +16,11 @@ import play.api.inject.bind
 
 import scala.reflect.ClassTag
 
+import play.api.inject.bind // 必ず手動で指定
+import services.{ MessageService, MockMessageService }
+
 abstract class PlayFunSpec
-  extends FunSpec
+    extends FunSpec
     with MustMatchers
     with OptionValues
     with WsScalaTestClient
@@ -28,6 +31,7 @@ abstract class PlayFunSpec
     new GuiceApplicationBuilder()
       .disable[DBModule]
       .disable[PlayModule]
+      .overrides(bind[MessageService].to[MockMessageService]) // モックに差し替える
       .build()
 
   lazy val injector = fakeApplication.injector
