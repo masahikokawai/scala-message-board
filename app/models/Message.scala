@@ -1,27 +1,33 @@
 package models
 
-import scalikejdbc._
+import java.time.ZonedDateTime
+
+import scalikejdbc._, jsr310._ // java.time.ZonedDateTimeを利用するため、jsr310は手動でインポートする
 import skinny.orm._
 
 /**
   * Message
   */
-case class Message(id: Option[Long])
+case class Message(id: Option[Long], body: String, createAt: ZonedDateTime, updateAt: ZonedDateTime)
 
 object Message extends SkinnyCRUDMapper[Message] {
 
-  override def defaultAlias: Alias[Message] = ??? // FIXME
+  override def tableName = "messages"
+
+  override def defaultAlias: Alias[Message] = createAlias("m")
 
   override def extract(rs: WrappedResultSet, n: ResultName[Message]): Message =
     autoConstruct(rs, n)
 
-  private def toNamedValues(record: Message): Seq[(Symbol, Any)] = ??? // FIXME
+  private def toNamedValues(record: Message): Seq[(Symbol, Any)] = Seq(
+    'body     -> record.body,
+    'createAt -> record.createAt,
+    'updateAt -> record.updateAt
+  )
 
-  // ヘルパーメソッド
   def create(message: Message)(implicit session: DBSession): Long =
     createWithAttributes(toNamedValues(message): _*)
 
-  // ヘルパーメソッド(ただし、全カラムを更新するので、部分更新にする場合はupdateByIdを直接利用すること)
   def update(message: Message)(implicit session: DBSession): Int =
     updateById(message.id.get).withAttributes(toNamedValues(message): _*)
 
